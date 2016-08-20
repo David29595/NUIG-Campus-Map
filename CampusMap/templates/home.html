@@ -1,0 +1,271 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>CampusMap</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ STATIC_URL }}css/simple-sidebar.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="{{ STATIC_URL }}js/jquery.js"></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+    <!-- Menu Toggle Script -->
+    <script src="{{ STATIC_URL }}js/table.js"></script>
+    <script src="{{ STATIC_URL }}js/timetableFilters.js"></script>
+
+</head>
+
+<style>
+
+    .top-custom{
+        padding:10px
+    }
+
+</style>
+
+<body>
+
+{% include "dbstuff/login.html" %}
+
+
+
+<div class="container"> <!-- Container -->
+
+    <div class="jumbotron" style="padding:20px; margin-top:30px; background-color:#66AACC">
+        <div class="row">
+          <div class="col-xs-12 head-font" style="text-align: center">
+            <h1 style="color:white; font-size: 48px; ">Welcome to the NUIG CampusMap</h1>
+          </div>
+        </div>
+    </div>
+
+    <div class="container"> <!-- Container -->
+
+    <form class="col-xs-12" role="form" xmlns="http://www.w3.org/1999/html">
+        <div class="form-group">
+            <div class="col-md-3 text-center top-custom">
+              <select class="form-control" id="departmentSelect" >
+                <option value=''>Select Department</option>
+              </select>
+            </div>
+
+            <div class="col-md-3 text-center top-custom" id = "courses">
+              <select class="form-control" id="courseSelect">
+                <option value='0'>Select Course</option>
+              </select>
+            </div>
+
+            <div class="col-md-2 text-center top-custom">
+              <select class="form-control" id="yearSelect">
+                <option value='0'>Select Year</option>
+
+              </select>
+            </div>
+
+            <div class="col-md-2 text-center top-custom">
+              <select class="form-control" id="semesterSelect">
+                <option value='0'>Select Semester</option>
+                <option value="1" >1</option>
+                <option value="2" >2</option>
+              </select>
+            </div>
+
+            <div class="col-md-2 text-center top-custom">
+                <btn class="btn btn-primary" onclick="submit()">Submit</btn>
+            </div>
+
+        </div>
+      </form>
+    </div>
+
+</div>
+
+<div id="timetable" class="container-fluid col-xs-12" style="margin-top:20px"></div>
+
+
+<div id="mapModal" class="modal fade">
+
+    <style type="text/css">
+
+        #map-canvas{
+            height: 100%;
+            width: 100%;
+            margin-left: 50px;
+            margin-right: 50px;
+            margin-top: 30px;
+            padding: 0;
+        }
+
+        .full-height{
+            height: 450px;
+        }
+
+        @media (min-height: 800px) {
+            .full-height{
+                height: 600px;
+            }
+        }
+
+        @media (min-height: 900px) {
+            .full-height{
+                height: 700px;
+            }
+        }
+
+        @media (min-height: 1000px) {
+            .full-height{
+                height: 850px;
+            }
+        }
+
+    </style>
+
+    <div class="container full-height">
+        <div id="map-canvas"></div>
+    </div>
+
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJJEeE5dn-hk6w1MoBSn2-Q3p4TfBcbMk"> </script>
+
+
+</div>
+
+<div id="saveButton"></div> <!-- suppresses error from map.js  -->
+
+<script>
+
+window.onload=function(){
+    getDepartments();
+}
+
+
+function loadPin(room){
+    console.log(room);
+
+    var param = '../edit-map-json/?message=' + 'coord' + '&room=' + room;
+
+    var request = new XMLHttpRequest();
+    request.open('GET', param, false);  // `false` makes the request synchronous
+    request.send(null);
+
+    coords = JSON.parse(request.responseText);
+
+    marker.setPosition(new google.maps.LatLng(coords.lat, coords.lng));
+    map.setCenter(new google.maps.LatLng(coords.lat, coords.lng));
+
+    lat = coords.lat;
+    lng = coords.lng;
+
+    document.getElementById('saveButton').disabled = false;
+}
+
+var map = null;
+var marker = null;
+var room = null;
+var lat = null;
+var lng = null;
+
+function initialize() {
+    var mapOptions = {
+        center: {lat: 53.278, lng: -9.061608463525772},
+        zoom: 17
+    };
+
+    map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+        marker = new google.maps.Marker({
+        position: {lat: 53.27665459354239, lng: -9.061608463525772},
+        map: map,
+        draggable: false
+    });
+
+
+    google.maps.event.addListener(marker, 'drag', function(event) {
+        //console.debug('new position is '+event.latLng.lat()+' / '+event.latLng.lng());
+    });
+
+    google.maps.event.addListener(marker, 'dragend', function(event) {
+        //console.debug('final position is '+event.latLng.lat()+' / '+event.latLng.lng());
+        lat = event.latLng.lat();
+        lng = event.latLng.lng();
+    });
+
+    // Quick fix for map not loading fully during the first start
+    var centered = false;
+    google.maps.event.addListener(map, 'idle', function() { // fox for map not loading fully
+
+        google.maps.event.trigger(map, 'resize');
+        if(centered==false){
+            map.setCenter(marker.getPosition());
+            centered = true;
+        }
+
+    });
+
+}
+
+    //Onclick to load timetable when semester is chosen
+    function submit(){
+        sem = document.getElementById('semesterSelect');
+        year = document.getElementById('yearSelect');
+        course = document.getElementById('courseSelect');
+        var val1 = course.options[course.selectedIndex].value;
+        var val2 = year.options[year.selectedIndex].value;
+        var val3 = sem.options[sem.selectedIndex].value;
+        console.log('Course = ' + val1 + ' Year= ' + val2 + ' Semester = ' + val3);
+        sem.setAttribute('onchange', loadTimetable(department,val1,val2,val3));
+
+        year = val2;
+        semester = val3;
+    }
+
+    function loadTimetable(department,course,year,semester){
+
+        var request = new XMLHttpRequest();
+        var message = buildURL("load",department,course,year,semester);
+        request.open('GET', message, false);  // `false` makes the request synchronous
+        request.send(null);
+
+        timeTable = JSON.parse(request.responseText);
+
+        retDiv = createTable(timeTable, 'user');
+
+        el = document.getElementById("timetable");
+
+        while (el.hasChildNodes()){
+            el.removeChild(el.firstChild);
+        }
+
+        document.getElementById("timetable").appendChild(retDiv);
+
+        var table = document.getElementsByTagName("table")[0];
+        var cells = table.getElementsByTagName("td"); //
+
+        for(var i = 0; i < cells.length; i++){
+        // Cell Object
+        var cell = cells[i];
+        // Track with onclick
+            cell.onclick = function(){
+
+                var room = this.getAttribute("room");
+                $('#mapModal').modal('show');
+
+                 initialize();
+
+                loadPin(room);
+
+                window.setTimeout(function(){google.maps.event.trigger(map, 'resize')}, 1000)
+            }
+        }
+    }
+
+</script>

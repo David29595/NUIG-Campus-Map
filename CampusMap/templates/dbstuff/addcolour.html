@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="container">
+
+        <h1>Add New Colour</h1>
+
+
+         <table class="table table-striped" id="test">
+            <!-- PRINT COLUMN NAME -->
+            <tr>
+                <th>Colour</th>
+                <th>Hex Code</th>
+                <th>Delete</th>
+            </tr>
+            <!-- FILL ONE ROW - 3 COLUMNS  -->
+            {% for item in query_results %}
+                <tr>
+                    <td >{{  item.colour }}</td>
+
+                    <td style="background: '#'+{{ item.hex }};">{{  item.hex }}</td>
+
+                    <td>
+                        <button type="submit" onclick="getRecordDetails('colour','delete');" class="btn btn-default" aria-label="Left Align" style="color: red">
+                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                        </button>
+                    </td>
+                </tr>
+            {% endfor %}
+
+
+            <tr>
+                 <!-- PRINT FORM IN THE LAST ROW -->
+                <form class="form-contact" action="" method="POST">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+
+                        <td>
+                                <input type="text" class="form-control" name="{{ field.name }}" id="id_{{ field.name }}">
+                                <div style= "color: red" >{{ field.errors|striptags }} </div>
+
+                        </td>
+
+                    {% endfor %}
+                <td><input type="submit" value="Submit"  class="btn btn-primary">
+                </td>
+            </form>
+         </tr>
+
+
+    </table>
+    </div>
+
+{%  endblock %}

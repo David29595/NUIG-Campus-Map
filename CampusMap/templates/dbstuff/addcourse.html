@@ -1,0 +1,105 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<script type="text/javascript" src="{{ STATIC_URL }}js/sm.js"> </script>
+
+    <div class="container">
+            <h1>Add New Course</h1>
+            <table class="table table-striped" id="test">
+            <!-- PRINT COLUMN NAME -->
+                <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Department</th>
+                    <th>Delete</th>
+                </tr>
+                <!-- FILL ONE ROW - 3 COLUMNS  -->
+                {% for item in query_results %}
+                 <tr>
+                    <td >{{  item.courseCode }}</td>
+
+                    <td>{{  item.courseName }}</td>
+
+                    <td>{{  item.department }}</td>
+                    <td>
+                        <button type="submit" onclick="getRecordDetails('course','delete')" class="btn btn-default" aria-label="Left Align" style="color: red">
+                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                        </button>
+                    </td>
+                 </tr>
+                {% endfor %}
+
+
+
+                <tr>
+                <!-- PRINT FORM IN THE LAST ROW -->
+                <form class="form-contact" action="" method="POST">
+                {% csrf_token %}
+
+                    {% for field in form %}
+
+                    <td>
+
+                        {% ifequal field.name "department" %}
+
+                            <select class="form-control" name="{{ field.name }}" id="id_{{ field.name }}">
+                                <option value= {{ form.department }}
+
+                            <div style= "color: red"> {{ field.errors|striptags }}</div>
+                            <p class="help-text">{{ field.help_text }} </p>
+                            </select>
+                        {% else %}
+
+                            <input type="text" class="form-control" name="{{ field.name }}" id="id_{{ field.name }}">
+                            <div style= "color: red" >{{ field.errors|striptags }} </div>
+
+                        {% endifequal %}
+
+
+                    </td>
+
+                    {% endfor %}
+                    <td>
+                        <input type="submit" value="Submit"  class="btn btn-primary">
+                    </td>
+
+                    </form>
+
+            </table>
+
+
+
+        </div>
+    <!--
+
+    <div class="container">
+
+            <h1>Add Course Page</h1>
+
+            <form class="form-contact" action="" method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+                <fieldset class="form-group">
+
+                    <div style= "color: red">
+                    <label style= "color: black" for="id_{{ field.name }}">{{ field.label }}</label>
+                        {{ field.errors|striptags }}
+                     </div>
+                    <input type="text" class="form-control" name="{{ field.name }}" id="id_{{ field.name }}">
+                    <p class="help-text">{{ field.help_text }} </p>
+                    </fieldset>
+            {% endfor %}
+             <input type="submit" value="Submit"  class="btn btn-primary">
+            </form>
+        </div>
+
+
+    -->
+
+{%  endblock %}
+
+
+
